@@ -42,9 +42,9 @@ export const Dashboard = () => {
       const src = editPrompt.trim() || project.prompt;
       const newBp = await generateBlueprint(src, themeMode, seed);
       updateProjectBlueprint(project.id, newBp);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      alert(`Generation Failed: ${e.message || 'Unknown error'}`);
+      alert(`Generation Failed: ${(e as Error).message || 'Unknown error'}`);
     } finally {
       setIsGenerating(false);
     }

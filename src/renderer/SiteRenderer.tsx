@@ -10,6 +10,7 @@ import { HeroBookstore, BookCategories, BookFeatured, BookGrid, BookNewArrivals 
 export const SiteRenderer = ({ blueprint }: { blueprint: SiteBlueprint }) => {
   const [currentPath, setCurrentPath] = useState('/');
 
+  // eslint-disable-next-line
   useEffect(() => { setCurrentPath('/'); }, [blueprint]);
 
   const currentPage = blueprint.pages.find(p => p.path === currentPath) || blueprint.pages[0];

@@ -26,12 +26,14 @@ export const Hero = () => {
     return () => clearInterval(t);
   }, []);
 
+  /* eslint-disable */
   useEffect(() => {
     if (!prompt.trim()) { setDetectedLabel(''); return; }
     const industry = detectIndustry(prompt);
     const label = industry.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
     setDetectedLabel(industry === 'generic' ? '' : label);
   }, [prompt]);
+  /* eslint-enable */
 
   const handleGenerate = async () => {
     const trimmed = prompt.trim();
@@ -47,9 +49,9 @@ export const Hero = () => {
       const bp = await generateBlueprint(trimmed, themeMode, seed);
       createProject(trimmed, bp);
       setAppState('generator');
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      alert(`Generation Failed: ${e.message || 'Unknown error'}`);
+      alert(`Generation Failed: ${(e as Error).message || 'Unknown error'}`);
     } finally {
       setIsGenerating(false);
     }

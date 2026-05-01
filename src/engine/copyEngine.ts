@@ -2,7 +2,7 @@ import { GoogleGenAI, Type, type Schema } from '@google/genai';
 import { type SubNiche, type SiteCopy } from './types';
 
 // Generic fallback copy
-const genericCopy: SiteCopy = {
+export const genericCopy: SiteCopy = {
   brandName: 'Brand',
   tagline: 'Modern Solutions',
   heroHeadline: 'Build Something Amazing',
@@ -13,7 +13,7 @@ const genericCopy: SiteCopy = {
   footerTagline: 'Empowering teams worldwide.'
 };
 
-const copyMap: Partial<Record<SubNiche, SiteCopy>> = {
+export const copyMap: Partial<Record<SubNiche, SiteCopy>> = {
   beauty_store: {
     brandName: 'Lumière',
     tagline: 'Clean Beauty & Skincare',
@@ -135,9 +135,9 @@ export const generateCopy = async (prompt: string, subNiche: SubNiche): Promise<
         if (extractedName) generated.brandName = extractedName;
         return generated;
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Gemini API Error:", e);
-      throw new Error(`Gemini API Error: ${e.message || 'Failed to generate copy'}`);
+      throw new Error(`Gemini API Error: ${(e as Error).message || 'Failed to generate copy'}`, { cause: e });
     }
   }
 
