@@ -1,4 +1,4 @@
-name: CI/CD — Prompt to Website
+name: CI/CD — Prompt to Website (React + TypeScript)
 
 on:
   push:
