@@ -45,7 +45,7 @@ export const Hero = () => {
 
     setIsGenerating(true);
     try {
-      const seed = Math.floor(Math.random() * 999);
+      const seed = crypto.getRandomValues(new Uint32Array(1))[0] % 1000;
       const bp = await generateBlueprint(trimmed, themeMode, seed);
       createProject(trimmed, bp);
       setAppState('generator');

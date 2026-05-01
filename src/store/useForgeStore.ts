@@ -50,7 +50,7 @@ export const useForgeStore = create<ForgeStore>()(
       activeProjectId: null,
 
       createProject: (prompt, blueprint) => {
-        const id = Math.random().toString(36).substr(2, 8);
+        const id = crypto.randomUUID().split('-')[0];
         const proj: ForgeProject = {
           id, prompt, blueprint, createdAt: Date.now(),
           name: blueprint.copy.brandName,
@@ -72,7 +72,7 @@ export const useForgeStore = create<ForgeStore>()(
       duplicateProject: (id) => {
         const proj = get().projects.find(p => p.id === id);
         if (!proj) return;
-        const newId = Math.random().toString(36).substr(2, 8);
+        const newId = crypto.randomUUID().split('-')[0];
         set((st) => ({
           projects: [{ ...proj, id: newId, name: proj.name + ' (Copy)', createdAt: Date.now() }, ...st.projects],
           activeProjectId: newId,

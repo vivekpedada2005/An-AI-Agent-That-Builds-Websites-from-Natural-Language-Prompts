@@ -38,7 +38,7 @@ export const Dashboard = () => {
 
     setIsGenerating(true);
     try {
-      const seed = Math.floor(Math.random() * 999);
+      const seed = crypto.getRandomValues(new Uint32Array(1))[0] % 1000;
       const src = editPrompt.trim() || project.prompt;
       const newBp = await generateBlueprint(src, themeMode, seed);
       updateProjectBlueprint(project.id, newBp);
