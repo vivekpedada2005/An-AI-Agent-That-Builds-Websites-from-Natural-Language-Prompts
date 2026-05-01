@@ -1,0 +1,44 @@
+name: Stack Guard — No Python/Streamlit/Gradio
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  stack-guard:
+    name: 🛡️ Tech Stack Compliance Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: ❌ Fail if Python files found in src/
+        run: |
+          if find src/ -name "*.py" | grep -q .; then
+            echo "ERROR: Python files found in src/. This is a React/TypeScript project only."
+            find src/ -name "*.py"
+            exit 1
+          fi
+          echo "✅ No Python files in src/"
+
+      - name: ❌ Fail if requirements.txt exists
+        run: |
+          if [ -f "requirements.txt" ] || [ -f "Pipfile" ] || [ -f "setup.py" ] || [ -f "pyproject.toml" ]; then
+            echo "ERROR: Python package files found. Only npm/package.json is allowed."
+            exit 1
+          fi
+          echo "✅ No Python package files found"
+
+      - name: ❌ Fail if prohibited frameworks referenced in source
+        run: |
+          PROHIBITED="streamlit|gradio|flask|django|fastapi|nicegui|reflex|plotly\.dash"
+          if grep -rn --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" -E "$PROHIBITED" src/; then
+            echo "ERROR: Prohibited framework reference found in source code."
+            exit 1
+          fi
+          echo "✅ No prohibited framework references in source code"
+
+      - name: ✅ Stack compliance passed
+        run: echo "Stack guard passed — pure React/TypeScript/Vite project confirmed."
