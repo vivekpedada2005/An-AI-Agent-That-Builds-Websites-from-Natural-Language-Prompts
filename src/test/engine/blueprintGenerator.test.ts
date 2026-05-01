@@ -2,7 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { generateBlueprint } from '../../engine/blueprintGenerator';
 import * as copyEngine from '../../engine/copyEngine';
 
-vi.spyOn(copyEngine, 'generateCopy').mockImplementation(async (prompt: string, subNiche: string) => {
+vi.spyOn(copyEngine, 'generateCopy').mockImplementation(async (_prompt: string, subNiche: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const copyMap = copyEngine.copyMap as any;
   return copyMap[subNiche] || copyEngine.genericCopy;
 });
