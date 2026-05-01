@@ -127,6 +127,7 @@ describe('Selection Helpers', () => {
   
   it('selectPalette returns correct palette', () => {
     expect(selectPalette('chatgpt_clone', 0).bg).toBe('#343541');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(selectPalette('unknown_niche' as any, 0).primary).toBe('#6366f1'); // fallback
   });
   
@@ -134,7 +135,7 @@ describe('Selection Helpers', () => {
     expect(selectTypography('netflix_clone').heading).toBe('Bebas Neue');
     expect(selectTypography('cyberpunk').heading).toBe('Space Mono');
     expect(selectTypography('fashion_luxury').heading).toBe('Playfair Display');
-    expect(selectTypography('creative_agency').heading).toBe('Syne');
+    expect(selectTypography('fashion_minimal').heading).toBe('Syne');
     expect(selectTypography('generic').heading).toBe('Inter');
   });
 });

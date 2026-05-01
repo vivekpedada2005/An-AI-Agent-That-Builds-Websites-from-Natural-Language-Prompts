@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { generateCopy, genericCopy } from '../../engine/copyEngine';
-import * as genAiModule from '@google/genai';
+import { generateCopy } from '../../engine/copyEngine';
 
 vi.mock('@google/genai', () => {
   const mockGenerateContent = vi.fn().mockResolvedValue({
