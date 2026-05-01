@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectIndustry } from '../../engine/promptAnalyzer';
+import { detectIndustry, detectSubNiche, selectLayout, selectPalette, selectTypography } from '../../engine/promptAnalyzer';
 
 describe('detectIndustry()', () => {
 
@@ -89,5 +89,52 @@ describe('detectIndustry()', () => {
     prompts.forEach(([prompt, expected]) => {
       expect(detectIndustry(prompt)).toBe(expected);
     });
+  });
+});
+
+describe('detectSubNiche()', () => {
+  it('detects correct sub niches based on keywords', () => {
+    expect(detectSubNiche('a tech blog', 'blog')).toBe('blog_tech');
+    expect(detectSubNiche('lifestyle blog', 'blog')).toBe('blog_lifestyle');
+    expect(detectSubNiche('general news', 'blog')).toBe('news_magazine');
+    
+    expect(detectSubNiche('wedding event planner', 'event')).toBe('wedding_planner');
+    expect(detectSubNiche('corporate conference', 'event')).toBe('event_corporate');
+    
+    expect(detectSubNiche('landing page', 'generic')).toBe('landing_page');
+    expect(detectSubNiche('some startup', 'startup')).toBe('startup_launch');
+    expect(detectSubNiche('big corporate', 'corporate')).toBe('corporate_enterprise');
+    expect(detectSubNiche('charity ngo', 'ngo')).toBe('ngo_charity');
+    
+    expect(detectSubNiche('netflix clone', 'generic')).toBe('netflix_clone');
+    expect(detectSubNiche('chatgpt clone', 'generic')).toBe('chatgpt_clone');
+    expect(detectSubNiche('apple style', 'generic')).toBe('apple_style');
+    expect(detectSubNiche('cyberpunk', 'generic')).toBe('cyberpunk');
+    expect(detectSubNiche('airbnb clone', 'generic')).toBe('airbnb_clone');
+    expect(detectSubNiche('amazon clone', 'generic')).toBe('amazon_clone');
+    expect(detectSubNiche('tesla style', 'generic')).toBe('tesla_style');
+    
+    // fallbacks
+    expect(detectSubNiche('something else', 'generic')).toBe('generic');
+  });
+});
+
+describe('Selection Helpers', () => {
+  it('selectLayout returns correct layout', () => {
+    expect(selectLayout('generic', 0, 'netflix_clone')).toBe('netflix-layout');
+    expect(selectLayout('fintech', 0)).toBe('split-hero');
+  });
+  
+  it('selectPalette returns correct palette', () => {
+    expect(selectPalette('chatgpt_clone', 0).bg).toBe('#343541');
+    expect(selectPalette('unknown_niche' as any, 0).primary).toBe('#6366f1'); // fallback
+  });
+  
+  it('selectTypography returns correct typography', () => {
+    expect(selectTypography('netflix_clone').heading).toBe('Bebas Neue');
+    expect(selectTypography('cyberpunk').heading).toBe('Space Mono');
+    expect(selectTypography('fashion_luxury').heading).toBe('Playfair Display');
+    expect(selectTypography('creative_agency').heading).toBe('Syne');
+    expect(selectTypography('generic').heading).toBe('Inter');
   });
 });
