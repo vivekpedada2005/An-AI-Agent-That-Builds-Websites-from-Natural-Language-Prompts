@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Monitor, Tablet, Smartphone, Download, Copy, Globe, Check, Code, Eye, Trash2, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Monitor, Tablet, Smartphone, Download, Copy, Globe, Check, Code, Eye, Trash2, RefreshCw, AlertTriangle, CheckCircle, X } from 'lucide-react';
 import { useForgeStore } from '../../store/useForgeStore';
 import { SiteRenderer } from '../../renderer/SiteRenderer';
 import { exportProject } from '../../utils/export';
@@ -18,9 +18,16 @@ export const Dashboard = () => {
   const [publishing, setPublishing] = useState(false);
   const [editPrompt, setEditPrompt] = useState('');
   const [sidebarTab, setSidebarTab] = useState<'current' | 'history'>('current');
+  const [toast, setToast] = useState<{ type: 'success' | 'warning' | 'error'; msg: string } | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
+
+  const showToast = (type: 'success' | 'warning' | 'error', msg: string) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   // Always pick active project; fall back to most recent
-  const project = projects.find(p => p.id === activeProjectId) ?? projects[0];
+  const project = projects.find(p => p.id === activeProjectId) ?? (projects.length > 0 ? projects[0] : undefined);
   const bp = project?.blueprint;
 
   const getPreviewWidth = () => {
@@ -33,7 +40,7 @@ export const Dashboard = () => {
     if (!project || isGenerating) return;
 
     if (!import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY === 'your_gemini_api_key_here') {
-      alert("WARNING: You haven't added a Google Gemini API Key to your .env file! The AI cannot generate relevant copy, so it will fall back to the generic 'Build Something Amazing' text. Please add your API key to .env for AI generation.");
+      showToast('warning', "No Gemini API Key found — AI will use fallback copy. Add VITE_GEMINI_API_KEY to your .env.");
     }
 
     setIsGenerating(true);
@@ -43,8 +50,8 @@ export const Dashboard = () => {
       const newBp = await generateBlueprint(src, themeMode, seed);
       updateProjectBlueprint(project.id, newBp);
     } catch (e: unknown) {
-      console.error(e);
-      alert(`Generation Failed: ${(e as Error).message || 'Unknown error'}`);
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      showToast('error', `Generation failed: ${msg}`);
     } finally {
       setIsGenerating(false);
     }
@@ -62,7 +69,7 @@ export const Dashboard = () => {
     setPublishing(true);
     const url = await simulatePublish();
     setPublishing(false);
-    alert(`🚀 Published!\n\nLive URL: ${url}\n\n(Demo — in production this would deploy to a real host)`);
+    showToast('success', `🚀 Published! Live URL: ${url} (Demo — in production this deploys to a real host)`);
   };
 
   // LOADING STATE
@@ -92,6 +99,30 @@ export const Dashboard = () => {
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#ffffff', color: '#111827', overflow: 'hidden', fontFamily: 'system-ui, sans-serif' }}>
+
+      {/* ── TOAST NOTIFICATION ─────────────────────────────────────────────── */}
+      {toast && (
+        <div role="alert" style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, background: toast.type === 'success' ? '#f0fdf4' : toast.type === 'warning' ? '#fffbeb' : '#fef2f2', border: `1px solid ${toast.type === 'success' ? '#86efac' : toast.type === 'warning' ? '#fbbf24' : '#fca5a5'}`, borderRadius: 12, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10, maxWidth: 560, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', fontSize: 13, color: toast.type === 'success' ? '#166534' : toast.type === 'warning' ? '#92400e' : '#991b1b' }}>
+          {toast.type === 'success' ? <CheckCircle size={16} color="#22c55e" style={{ flexShrink: 0 }} /> : <AlertTriangle size={16} color={toast.type === 'warning' ? '#d97706' : '#dc2626'} style={{ flexShrink: 0 }} />}
+          <span style={{ flex: 1 }}>{toast.msg}</span>
+          <button onClick={() => setToast(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex' }}><X size={14} /></button>
+        </div>
+      )}
+
+      {/* ── CONFIRM CLEAR MODAL ─────────────────────────────────────────────── */}
+      {confirmClear && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div role="dialog" aria-modal="true" style={{ background: '#fff', borderRadius: 16, padding: 28, maxWidth: 360, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', textAlign: 'center' }}>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>🗑️</div>
+            <div style={{ fontWeight: 800, fontSize: 18, color: '#111827', marginBottom: 8 }}>Clear all history?</div>
+            <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>This will permanently delete all generated sites. This action cannot be undone.</div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button onClick={() => setConfirmClear(false)} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#374151', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>Cancel</button>
+              <button onClick={() => { useForgeStore.getState().clearAllProjects(); setConfirmClear(false); }} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 14 }}>Clear All</button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* ── TOOLBAR ──────────────────────────────────────────────────────────── */}
       <div style={{ height: 58, borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', flexShrink: 0, gap: 12 }}>
         {/* Left */}
@@ -224,7 +255,7 @@ export const Dashboard = () => {
                 </div>
               ))}
               {projects.length > 0 && (
-                <button onClick={() => { if (window.confirm('Clear all history?')) useForgeStore.getState().clearAllProjects(); }} style={{ width: '100%', marginTop: 8, background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.2)', color: '#f87171', borderRadius: 8, padding: '8px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                <button onClick={() => setConfirmClear(true)} style={{ width: '100%', marginTop: 8, background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.2)', color: '#f87171', borderRadius: 8, padding: '8px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                   Clear All History
                 </button>
               )}

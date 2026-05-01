@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Wand2, ArrowRight, Sparkles } from 'lucide-react';
+import { Wand2, ArrowRight, Sparkles, AlertTriangle, X } from 'lucide-react';
 import { useForgeStore } from '../../store/useForgeStore';
 import { generateBlueprint } from '../../engine/blueprintGenerator';
 import { detectIndustry } from '../../engine/promptAnalyzer';
@@ -19,6 +19,8 @@ export const Hero = () => {
   const [prompt, setPrompt] = useState('');
   const [phIdx, setPhIdx] = useState(0);
   const [detectedLabel, setDetectedLabel] = useState('');
+  const [warning, setWarning] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
   const { createProject, setAppState, isGenerating, setIsGenerating, themeMode } = useForgeStore();
 
   useEffect(() => {
@@ -39,8 +41,11 @@ export const Hero = () => {
     const trimmed = prompt.trim();
     if (!trimmed || isGenerating) return;
 
+    setWarning('');
+    setErrorMsg('');
+
     if (!import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY === 'your_gemini_api_key_here') {
-      alert("WARNING: You haven't added a Google Gemini API Key to your .env file! The AI cannot generate relevant copy, so it will fall back to the generic 'Build Something Amazing' text. Please add your API key to .env for AI generation.");
+      setWarning("No Gemini API Key found — AI will use fallback copy. Add VITE_GEMINI_API_KEY to your .env for full AI generation.");
     }
 
     setIsGenerating(true);
@@ -50,8 +55,8 @@ export const Hero = () => {
       createProject(trimmed, bp);
       setAppState('generator');
     } catch (e: unknown) {
-      console.error(e);
-      alert(`Generation Failed: ${(e as Error).message || 'Unknown error'}`);
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      setErrorMsg(`Generation failed: ${msg}`);
     } finally {
       setIsGenerating(false);
     }
@@ -63,6 +68,24 @@ export const Hero = () => {
       {/* Subtle gradient blobs */}
       <div style={{ position: 'absolute', top: '10%', left: '5%', width: 600, height: 500, background: 'radial-gradient(ellipse, rgba(79,70,229,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: '10%', right: '5%', width: 400, height: 400, background: 'radial-gradient(ellipse, rgba(14,165,233,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+      {/* Inline warning banner — replaces browser alert() */}
+      {warning && (
+        <div role="alert" style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, background: '#fffbeb', border: '1px solid #fbbf24', borderRadius: 12, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10, maxWidth: 560, boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: 13, color: '#92400e' }}>
+          <AlertTriangle size={16} color="#d97706" style={{ flexShrink: 0 }} />
+          <span style={{ flex: 1 }}>{warning}</span>
+          <button onClick={() => setWarning('')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#92400e', display: 'flex' }}><X size={14} /></button>
+        </div>
+      )}
+
+      {/* Inline error banner */}
+      {errorMsg && (
+        <div role="alert" style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 12, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10, maxWidth: 560, boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: 13, color: '#991b1b' }}>
+          <AlertTriangle size={16} color="#dc2626" style={{ flexShrink: 0 }} />
+          <span style={{ flex: 1 }}>{errorMsg}</span>
+          <button onClick={() => setErrorMsg('')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#991b1b', display: 'flex' }}><X size={14} /></button>
+        </div>
+      )}
 
       <div style={{ textAlign: 'center', maxWidth: 860, position: 'relative', zIndex: 1 }}>
 
